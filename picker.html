@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Google Picker API Example</title>
+</head>
+
+<body>
+    <button onclick="pickerDialog()">Picker</button>
+</body>
+<script type="text/javascript" src="https://apis.google.com/js/api.js"></script>
+<script>
+    var clientId = "922787197280-65ktjmll9au1lj30hmrmf6gnf24kfrbg.apps.googleusercontent.com";
+    var key = "AIzaSyAJ5Ll_N2vY6XPTq7A_F1l49R_yT7iNDLI";
+    var projectId = "lifetimechimney";
+    var scope =[
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/drive.readonly',
+    'https://www.googleapis.com/auth/drive.metadata.readonly',
+    'https://www.googleapis.com/auth/drive.appdata',
+    'https://www.googleapis.com/auth/drive.metadata',
+  ];
+    var oauthToken
+    var pickerApiLoaded = false;
+    var google
+
+    function pickerDialog() {
+        loadPicker()
+    }
+    function loadPicker() {
+        gapi.load('auth', { 'callback': onAuthApiLoad });
+        gapi.load('picker', { 'callback': onPickerApiLoad });
+    }
+
+    function onAuthApiLoad() {
+        window.gapi.auth.authorize(
+            {
+                'client_id': clientId,
+                //'client_secret':"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",
+                'scope': scope,
+                'immediate': false,
+               
+            },
+            handleAuthResult)
+    }
+
+    function handleAuthResult(authResult) {
+        console.log(authResult)
+        if (authResult && !authResult.error) {
+            oauthToken = authResult.access_token;
+
+            createPicker();
+        }
+    }
+
+    function onPickerApiLoad() {
+        console.log("66666")
+        pickerApiLoaded = true;
+        createPicker();
+    }
+
+    function createPicker() {
+        console.log(oauthToken, "finally")
+        if (pickerApiLoaded&&oauthToken) {
+            console.log("88888")
+            var view = new google.picker.View(google.picker.ViewId.DOCS);
+            view.setMimeTypes("image/png,image/jpeg,image/jpg");
+            var picker = new google.picker.PickerBuilder()
+                .enableFeature(google.picker.Feature.NAV_HIDDEN)
+                .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+                .setAppId(projectId)
+                .setOAuthToken(oauthToken)
+                .addView(view)
+                .addView(new google.picker.DocsUploadView())
+                .setDeveloperKey(key)
+                .setCallback(pickerCallback)
+                .build();
+            picker.setVisible(true);
+
+        }
+    }
+
+    function pickerCallback(data) {
+        if (data.action == google.picker.Action.PICKED) {
+            var fileId = data.docs[0].id;
+            alert('The user selected: ' + fileId);
+        }
+    }
+</script>
+
+</html>
